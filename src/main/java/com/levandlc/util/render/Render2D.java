@@ -56,6 +56,52 @@ public final class Render2D {
     }
 
     // ------------------------------------------------------------------
+    // Rounded rectangles.
+    //
+    // Built purely from horizontal fill() strips, so they need no custom
+    // geometry / shaders and work on every Minecraft version.
+    // ------------------------------------------------------------------
+
+    /** Filled rectangle with rounded corners of the given radius. */
+    public static void roundedRect(DrawContext ctx, int x, int y, int width, int height,
+                                   int radius, int color) {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        int r = Math.max(0, Math.min(radius, Math.min(width, height) / 2));
+        if (r == 0) {
+            ctx.fill(x, y, x + width, y + height, color);
+            return;
+        }
+
+        // Straight middle section spanning the full width.
+        ctx.fill(x, y + r, x + width, y + height - r, color);
+
+        // Rounded caps: one scan-line per pixel row of the corner radius.
+        for (int i = 0; i < r; i++) {
+            double dy = r - (i + 0.5);
+            int inset = (int) Math.round(r - Math.sqrt(r * r - dy * dy));
+
+            // Top row.
+            ctx.fill(x + inset, y + i, x + width - inset, y + i + 1, color);
+            // Bottom row (mirrored).
+            ctx.fill(x + inset, y + height - 1 - i, x + width - inset, y + height - i, color);
+        }
+    }
+
+    /** Rounded filled rectangle with a separate rounded "outline" drawn on top. */
+    public static void roundedRectOutlined(DrawContext ctx, int x, int y, int width, int height,
+                                           int radius, int fillColor, int outlineColor) {
+        roundedRect(ctx, x, y, width, height, radius, fillColor);
+        // Cheap outline: a slightly larger rounded rect behind would be ideal, but
+        // overlaying a 1px frame on the straight edges reads well for GUI panels.
+        ctx.fill(x + radius, y, x + width - radius, y + 1, outlineColor);
+        ctx.fill(x + radius, y + height - 1, x + width - radius, y + height, outlineColor);
+        ctx.fill(x, y + radius, x + 1, y + height - radius, outlineColor);
+        ctx.fill(x + width - 1, y + radius, x + width, y + height - radius, outlineColor);
+    }
+
+    // ------------------------------------------------------------------
     // Lines.
     // ------------------------------------------------------------------
 
@@ -156,6 +202,77 @@ public final class Render2D {
 
     public static void scale(DrawContext ctx, float x, float y) {
         ctx.getMatrices().scale(x, y);
+    }
+
+    // ------------------------------------------------------------------
+    // ClickGUI / HUD helpers.
+    // ------------------------------------------------------------------
+
+    /** Axis-aligned hit test - true if (mx,my) is inside the given rectangle. */
+    public static boolean isHovered(double mx, double my, int x, int y, int width, int height) {
+        return mx >= x && mx <= x + width && my >= y && my <= y + height;
+    }
+
+    /**
+     * Soft drop shadow behind a rectangle, faked with concentric translucent
+     * frames so it needs no blur shader (works on every version).
+     *
+     * @param spread how many pixels the shadow extends outward.
+     * @param color  base shadow color; its alpha is faded out across the spread.
+     */
+    public static void dropShadow(DrawContext ctx, int x, int y, int width, int height,
+                                  int spread, int color) {
+        if (spread <= 0) {
+            return;
+        }
+        int baseAlpha = ColorUtil.alpha(color);
+        for (int i = spread; i >= 1; i--) {
+            float t = i / (float) spread;            // 1 at the outer edge, ~0 near the box
+            int alpha = Math.round(baseAlpha * (1f - t) * 0.5f);
+            int ring = ColorUtil.withAlpha(color, alpha);
+            ctx.drawBorder(x - i, y - i, width + i * 2, height + i * 2, ring);
+        }
+    }
+
+    /**
+     * Horizontal progress / health bar with a background track.
+     *
+     * @param progress 0.0-1.0 fill fraction.
+     */
+    public static void progressBar(DrawContext ctx, int x, int y, int width, int height,
+                                   float progress, int backgroundColor, int fillColor) {
+        progress = Math.max(0f, Math.min(1f, progress));
+        ctx.fill(x, y, x + width, y + height, backgroundColor);
+        int filled = Math.round(width * progress);
+        if (filled > 0) {
+            ctx.fill(x, y, x + filled, y + height, fillColor);
+        }
+    }
+
+    /**
+     * Health bar whose color blends green -> yellow -> red as health drops.
+     *
+     * @param fraction current / max health, 0.0-1.0.
+     */
+    public static void healthBar(DrawContext ctx, int x, int y, int width, int height,
+                                 float fraction, int backgroundColor) {
+        fraction = Math.max(0f, Math.min(1f, fraction));
+        int color = fraction > 0.5f
+                ? ColorUtil.interpolate(0xFFFFFF00, 0xFF00FF00, (fraction - 0.5f) * 2f)  // yellow -> green
+                : ColorUtil.interpolate(0xFFFF0000, 0xFFFFFF00, fraction * 2f);          // red -> yellow
+        progressBar(ctx, x, y, width, height, fraction, backgroundColor, color);
+    }
+
+    /** Right-aligned text (useful for HUD array-list module names). */
+    public static void textRight(DrawContext ctx, String text, int rightX, int y, int color, boolean shadow) {
+        ctx.drawText(mc().textRenderer, text, rightX - textWidth(text), y, color, shadow);
+    }
+
+    /** Vertically centers text within a row of {@code rowHeight} starting at {@code y}. */
+    public static void textVerticallyCentered(DrawContext ctx, String text, int x, int y, int rowHeight,
+                                               int color, boolean shadow) {
+        int ty = y + (rowHeight - textHeight()) / 2;
+        ctx.drawText(mc().textRenderer, text, x, ty, color, shadow);
     }
 
     // ------------------------------------------------------------------
