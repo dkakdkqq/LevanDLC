@@ -114,6 +114,43 @@ public final class RenderUtils {
                 && screenPos.y >= 0 && screenPos.y <= mc().getWindow().getScaledHeight();
     }
 
+    /**
+     * Projects all 8 corners of a world-space box and returns the tight
+     * screen-space rectangle {@code {minX, minY, maxX, maxY}} that encloses them,
+     * or {@code null} if the box is entirely behind the camera.
+     *
+     * <p>This is exactly what you need for classic 2D-box ESP and for anchoring
+     * nametags/health bars above an entity. Feed the result straight into
+     * {@link Render2D}.
+     */
+    public static float[] projectBoxToScreen(Box box, Matrix4f modelView, Matrix4f projection) {
+        double[] xs = {box.minX, box.maxX};
+        double[] ys = {box.minY, box.maxY};
+        double[] zs = {box.minZ, box.maxZ};
+
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
+        boolean anyVisible = false;
+
+        for (double x : xs) {
+            for (double y : ys) {
+                for (double z : zs) {
+                    Vec3d screen = worldToScreen(new Vec3d(x, y, z), modelView, projection);
+                    if (screen == null) {
+                        continue;
+                    }
+                    anyVisible = true;
+                    minX = Math.min(minX, (float) screen.x);
+                    minY = Math.min(minY, (float) screen.y);
+                    maxX = Math.max(maxX, (float) screen.x);
+                    maxY = Math.max(maxY, (float) screen.y);
+                }
+            }
+        }
+
+        return anyVisible ? new float[] {minX, minY, maxX, maxY} : null;
+    }
+
     // ------------------------------------------------------------------
     // Misc.
     // ------------------------------------------------------------------

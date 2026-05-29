@@ -120,6 +120,37 @@ public final class Render3D {
     }
 
     // ------------------------------------------------------------------
+    // ESP conveniences.
+    // ------------------------------------------------------------------
+
+    /**
+     * Draws an ESP box for an entity at its smooth, interpolated position
+     * (filled + outline). Pass the frame's tick delta from your render event.
+     */
+    public static void entityBox(MatrixStack matrices, net.minecraft.entity.Entity entity,
+                                 float tickDelta, int fillColor, int outlineColor) {
+        Box box = RenderUtils.interpolatedBox(entity, tickDelta);
+        box(matrices, box, fillColor, outlineColor);
+    }
+
+    /** Tracer aimed at the interpolated center of an entity. */
+    public static void entityTracer(MatrixStack matrices, net.minecraft.entity.Entity entity,
+                                    float tickDelta, int color) {
+        tracer(matrices, RenderUtils.interpolatedBox(entity, tickDelta).getCenter(), color);
+    }
+
+    /**
+     * Sets the GL line width for subsequent line draws.
+     *
+     * <p>[1.21.11 API] {@code RenderSystem.lineWidth} still exists, but the modern
+     * line render layer often ignores it in favour of a normal-based expansion;
+     * if your lines stay 1px, build a custom line layer with the desired width.
+     */
+    public static void lineWidth(float width) {
+        com.mojang.blaze3d.systems.RenderSystem.lineWidth(width);
+    }
+
+    // ------------------------------------------------------------------
     // Geometry builders.
     // ------------------------------------------------------------------
 
