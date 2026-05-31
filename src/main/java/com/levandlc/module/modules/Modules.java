@@ -80,8 +80,10 @@ public final class Modules {
                 mc -> mc.options.sneakKey));
         m.add(new KeyHoldModule("AutoJump", "Holds jump continuously", MOVEMENT, NONE,
                 mc -> mc.options.jumpKey));
+        m.add(new SpiderModule());
+        m.add(new GlideModule());
+        m.add(new FastFallModule());
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
-        m.add(new SimpleModule("Spider", "Climb walls like a spider", MOVEMENT));
         m.add(new SimpleModule("Jesus", "Walk on water surfaces", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
@@ -123,6 +125,7 @@ public final class Modules {
         m.add(new SimpleModule("Blink", "Holds back packets temporarily", PLAYER));
 
         // ---------------- UTIL ----------------
+        m.add(new AntiAFKModule());
         m.add(new SimpleModule("HUD", "On-screen information display", UTIL));
         m.add(new SimpleModule("FPSDisplay", "Shows current frame rate", UTIL));
         m.add(new SimpleModule("CoordsDisplay", "Shows your coordinates", UTIL));
