@@ -1,6 +1,5 @@
 package com.levandlc.module;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -10,10 +9,15 @@ import org.lwjgl.glfw.GLFW;
  * {@link #key keybind}. Lifecycle hooks are invoked by the {@link ModuleManager}:
  * <ul>
  *     <li>{@link #onEnable()} / {@link #onDisable()} on state transitions,</li>
- *     <li>{@link #onUpdate()} once per client tick while enabled,</li>
- *     <li>{@link #onRender3D(WorldRenderContext)} once per frame while enabled.</li>
+ *     <li>{@link #onUpdate()} once per client tick while enabled.</li>
  * </ul>
  * Subclasses override only the hooks they care about.
+ *
+ * <p>Note: a world-render hook is intentionally omitted here. World-space
+ * rendering depends on Fabric/Minecraft render APIs that change frequently
+ * between 1.21.x builds, so it is kept out of the core to keep this class
+ * stable and compilable. Add it back in a dedicated, version-pinned module
+ * once the target render API is confirmed.
  */
 public abstract class Module {
 
@@ -53,14 +57,6 @@ public abstract class Module {
 
     /** Called every client tick while the module is enabled. */
     public void onUpdate() {
-    }
-
-    /**
-     * Called every frame during world rendering while the module is enabled.
-     *
-     * @param context the Fabric world render context (matrices, camera, tick delta...).
-     */
-    public void onRender3D(WorldRenderContext context) {
     }
 
     // ------------------------------------------------------------------

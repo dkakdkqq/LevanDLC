@@ -6,9 +6,7 @@ import com.levandlc.module.ModuleManager;
 import com.levandlc.module.modules.ExampleModule;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +14,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Client entrypoint for the mod.
  *
- * <p>Wires the {@link ModuleManager} into Fabric's client lifecycle and world
- * render events, and toggles the {@link ClickGuiScreen} on a keybind.
+ * <p>Wires the {@link ModuleManager} into Fabric's client tick lifecycle and
+ * toggles the {@link ClickGuiScreen} on a keybind.
  */
 public class LevanDLC implements ClientModInitializer {
 
@@ -65,7 +63,7 @@ public class LevanDLC implements ClientModInitializer {
     }
 
     /**
-     * Binds the manager to Fabric's client tick and world render events.
+     * Binds the manager to Fabric's client tick event.
      */
     private void registerEventHandlers() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -81,8 +79,6 @@ public class LevanDLC implements ClientModInitializer {
                 MODULE_MANAGER.onUpdate();
             }
         });
-
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(MODULE_MANAGER::onRender3D);
     }
 
     /** Toggles the ClickGUI on a single press of {@link #CLICK_GUI_KEY} (edge-detected). */
@@ -90,7 +86,7 @@ public class LevanDLC implements ClientModInitializer {
         if (client.getWindow() == null) {
             return;
         }
-        boolean down = InputUtil.isKeyPressed(client.getWindow().getHandle(), CLICK_GUI_KEY);
+        boolean down = GLFW.glfwGetKey(client.getWindow().getHandle(), CLICK_GUI_KEY) == GLFW.GLFW_PRESS;
         if (down && !guiKeyHeld) {
             if (client.currentScreen == null) {
                 client.setScreen(new ClickGuiScreen());

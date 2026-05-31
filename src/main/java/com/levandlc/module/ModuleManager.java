@@ -1,7 +1,5 @@
 package com.levandlc.module;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -12,7 +10,7 @@ import java.util.Set;
 
 /**
  * Central registry that owns every {@link Module} and dispatches engine events
- * (keybinds, ticks and world rendering) to them.
+ * (keybinds and ticks) to them.
  */
 public class ModuleManager {
 
@@ -46,17 +44,17 @@ public class ModuleManager {
      * Handles keybind edge-detection and toggles modules accordingly.
      * Call once per client tick.
      *
-     * @param window the GLFW window handle
-     *               ({@code MinecraftClient.getInstance().getWindow().getHandle()}).
+     * @param windowHandle the GLFW window handle
+     *                     ({@code MinecraftClient.getInstance().getWindow().getHandle()}).
      */
-    public void handleKeyPresses(long window) {
+    public void handleKeyPresses(long windowHandle) {
         for (Module module : modules) {
             int key = module.getKey();
             if (key == GLFW.GLFW_KEY_UNKNOWN) {
                 continue;
             }
 
-            boolean down = InputUtil.isKeyPressed(window, key);
+            boolean down = GLFW.glfwGetKey(windowHandle, key) == GLFW.GLFW_PRESS;
             if (down) {
                 // Set#add returns true only on the first frame the key is held.
                 if (heldKeys.add(module)) {
@@ -73,15 +71,6 @@ public class ModuleManager {
         for (Module module : modules) {
             if (module.isEnabled()) {
                 module.onUpdate();
-            }
-        }
-    }
-
-    /** Dispatches the 3D render pass to every enabled module. */
-    public void onRender3D(WorldRenderContext context) {
-        for (Module module : modules) {
-            if (module.isEnabled()) {
-                module.onRender3D(context);
             }
         }
     }
