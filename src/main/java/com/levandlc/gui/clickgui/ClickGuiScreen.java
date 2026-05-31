@@ -19,9 +19,9 @@ import java.util.List;
  * Celestial-style ClickGUI: a centered window with a left category sidebar and a
  * scrollable column of module cards on the right. No search bar.
  *
- * <p>Features: smooth mouse-wheel + scrollbar-drag scrolling, per-module keybinds
- * (right-click a card, then press a key), and inline settings panels (gear icon)
- * with sliders / toggles / mode-cyclers.
+ * <p>Controls: <b>left-click</b> toggles a module, <b>right-click</b> opens its
+ * settings, <b>middle-click</b> starts binding (next key = its keybind). Smooth
+ * mouse-wheel scrolling. An enabled module is shown by an accent fill.
  *
  * <p>Input is GLFW-polled with our own edge detection for clicks and binding, so
  * we never override the version-sensitive {@code mouseClicked(Click)} /
@@ -46,6 +46,7 @@ public class ClickGuiScreen extends Screen {
     // Input edge-detection.
     private boolean leftHeld = false;
     private boolean rightHeld = false;
+    private boolean middleHeld = false;
     private final boolean[] keyHeld = new boolean[GLFW.GLFW_KEY_LAST + 1];
 
     private final Animation[] catHover = new Animation[Category.values().length];
@@ -139,7 +140,8 @@ public class ClickGuiScreen extends Screen {
             r.textVCentered(cats[i].getDisplayName(), sx + 16, iy, itemH - 4, active ? Theme.TEXT : col, false);
         }
 
-        r.text("[RShift] close", sx + 10, sy + sh - 14, Theme.TEXT_MUTED, false);
+        r.text("[RShift] close", sx + 10, sy + sh - 24, Theme.TEXT_MUTED, false);
+        r.text("LMB toggle", sx + 10, sy + sh - 14, Theme.TEXT_MUTED, false);
     }
 
     private void renderContent(Renderer r, DrawContext ctx, int mouseX, int mouseY) {
@@ -205,25 +207,34 @@ public class ClickGuiScreen extends Screen {
             // Swallow clicks while binding.
             leftHeld = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
             rightHeld = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+            middleHeld = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS;
             return;
         }
 
         boolean left = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
         if (left && !leftHeld) {
-            handleClick(mouseX, mouseY, true);
+            handleClick(mouseX, mouseY, ClickType.LEFT);
         }
         leftHeld = left;
 
         boolean right = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
         if (right && !rightHeld) {
-            handleClick(mouseX, mouseY, false);
+            handleClick(mouseX, mouseY, ClickType.RIGHT);
         }
         rightHeld = right;
+
+        boolean middle = GLFW.glfwGetMouseButton(handle, GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS;
+        if (middle && !middleHeld) {
+            handleClick(mouseX, mouseY, ClickType.MIDDLE);
+        }
+        middleHeld = middle;
     }
 
-    private void handleClick(int mouseX, int mouseY, boolean left) {
+    private enum ClickType { LEFT, RIGHT, MIDDLE }
+
+    private void handleClick(int mouseX, int mouseY, ClickType type) {
         // Sidebar category selection (left click only).
-        if (left) {
+        if (type == ClickType.LEFT) {
             float sx = winX;
             float sy = winY + Theme.HEADER_H;
             Category[] cats = Category.values();
@@ -246,7 +257,11 @@ public class ClickGuiScreen extends Screen {
             return;
         }
         for (ModuleCard card : cards) {
-            boolean consumed = left ? card.onLeftClick(mouseX, mouseY) : card.onRightClick(mouseX, mouseY);
+            boolean consumed = switch (type) {
+                case LEFT -> card.onLeftClick(mouseX, mouseY);
+                case RIGHT -> card.onRightClick(mouseX, mouseY);
+                case MIDDLE -> card.onMiddleClick(mouseX, mouseY);
+            };
             if (consumed) {
                 return;
             }
