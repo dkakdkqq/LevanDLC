@@ -2,6 +2,9 @@ package com.levandlc.module.modules;
 
 import com.levandlc.module.Category;
 import com.levandlc.module.Module;
+import com.levandlc.module.setting.BooleanSetting;
+import com.levandlc.module.setting.ModeSetting;
+import com.levandlc.module.setting.NumberSetting;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -28,25 +31,54 @@ public final class Modules {
         List<Module> m = new ArrayList<>();
 
         // ---------------- COMBAT ----------------
-        m.add(new SimpleModule("KillAura", "Automatically attacks nearby entities", COMBAT, GLFW.GLFW_KEY_R));
-        m.add(new SimpleModule("Criticals", "Always deal critical hits", COMBAT));
+        SimpleModule killAura = new SimpleModule("KillAura", "Automatically attacks nearby entities", COMBAT, GLFW.GLFW_KEY_R);
+        killAura.with(new NumberSetting("Range", 4.0, 1.0, 6.0, 0.1));
+        killAura.with(new NumberSetting("CPS", 12, 1, 20, 1));
+        killAura.with(new ModeSetting("Target", "Closest", "Health", "Angle"));
+        killAura.with(new BooleanSetting("Through Walls", false));
+        killAura.with(new BooleanSetting("Players", true));
+        killAura.with(new BooleanSetting("Mobs", true));
+        m.add(killAura);
+
+        SimpleModule criticals = new SimpleModule("Criticals", "Always deal critical hits", COMBAT);
+        criticals.with(new ModeSetting("Mode", "Packet", "Jump", "MiniJump"));
+        m.add(criticals);
+
         m.add(new SimpleModule("AutoCrystal", "Places and breaks end crystals", COMBAT));
-        m.add(new SimpleModule("AutoTotem", "Keeps a totem in your off-hand", COMBAT));
-        m.add(new SimpleModule("Aimbot", "Smoothly aims at the closest target", COMBAT));
-        m.add(new SimpleModule("Reach", "Extends your attack range", COMBAT));
+        SimpleModule autoTotem = new SimpleModule("AutoTotem", "Keeps a totem in your off-hand", COMBAT);
+        autoTotem.with(new NumberSetting("Min Health", 6, 1, 20, 1));
+        m.add(autoTotem);
+
+        SimpleModule aimbot = new SimpleModule("Aimbot", "Smoothly aims at the closest target", COMBAT);
+        aimbot.with(new NumberSetting("FOV", 90, 10, 180, 5));
+        aimbot.with(new NumberSetting("Smoothness", 0.5, 0.0, 1.0, 0.05));
+        m.add(aimbot);
+
+        SimpleModule reach = new SimpleModule("Reach", "Extends your attack range", COMBAT);
+        reach.with(new NumberSetting("Distance", 3.5, 3.0, 6.0, 0.1));
+        m.add(reach);
         m.add(new SimpleModule("AutoAnchor", "Automates respawn anchor combat", COMBAT));
         m.add(new SimpleModule("Hitboxes", "Expands entity hitboxes", COMBAT));
         m.add(new SimpleModule("TriggerBot", "Attacks when crosshair is on target", COMBAT));
         m.add(new SimpleModule("AntiBot", "Ignores fake/bot players", COMBAT));
         m.add(new SimpleModule("SuperKnockback", "Increases knockback dealt", COMBAT));
         m.add(new SimpleModule("AutoArmor", "Equips the best armor automatically", COMBAT));
-        m.add(new SimpleModule("Velocity", "Reduces or cancels knockback taken", COMBAT));
+        SimpleModule velocity = new SimpleModule("Velocity", "Reduces or cancels knockback taken", COMBAT);
+        velocity.with(new NumberSetting("Horizontal", 0, 0, 100, 1));
+        velocity.with(new NumberSetting("Vertical", 0, 0, 100, 1));
+        m.add(velocity);
         m.add(new SimpleModule("BowAimbot", "Auto-aims projectiles at targets", COMBAT));
 
         // ---------------- MOVEMENT ----------------
         m.add(new SimpleModule("Sprint", "Always sprint forward", MOVEMENT));
-        m.add(new SimpleModule("Flight", "Lets you fly freely", MOVEMENT, GLFW.GLFW_KEY_G));
-        m.add(new SimpleModule("Speed", "Move faster than normal", MOVEMENT));
+        SimpleModule flight = new SimpleModule("Flight", "Lets you fly freely", MOVEMENT, GLFW.GLFW_KEY_G);
+        flight.with(new NumberSetting("Speed", 2.0, 0.5, 10.0, 0.5));
+        flight.with(new ModeSetting("Mode", "Creative", "Vanilla", "Glide"));
+        m.add(flight);
+        SimpleModule speed = new SimpleModule("Speed", "Move faster than normal", MOVEMENT);
+        speed.with(new NumberSetting("Multiplier", 1.5, 1.0, 5.0, 0.1));
+        speed.with(new ModeSetting("Mode", "Strafe", "Bhop", "OnGround"));
+        m.add(speed);
         m.add(new SimpleModule("NoFall", "Prevents fall damage", MOVEMENT));
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("Spider", "Climb walls like a spider", MOVEMENT));
@@ -60,9 +92,16 @@ public final class Modules {
         m.add(new SimpleModule("Sneak", "Permanently sneak", MOVEMENT));
 
         // ---------------- RENDER ----------------
-        m.add(new SimpleModule("ESP", "Highlights entities through walls", RENDER));
+        SimpleModule esp = new SimpleModule("ESP", "Highlights entities through walls", RENDER);
+        esp.with(new ModeSetting("Mode", "Box", "2D", "Outline"));
+        esp.with(new BooleanSetting("Players", true));
+        esp.with(new BooleanSetting("Mobs", false));
+        m.add(esp);
         m.add(new SimpleModule("Tracers", "Draws lines to entities", RENDER));
         m.add(new SimpleModule("Fullbright", "Maximum brightness everywhere", RENDER, GLFW.GLFW_KEY_H));
+        SimpleModule zoom = new SimpleModule("Zoom", "Optifine-style zoom", RENDER, GLFW.GLFW_KEY_C);
+        zoom.with(new NumberSetting("Level", 4, 2, 10, 1));
+        m.add(zoom);
         m.add(new SimpleModule("Nametags", "Enlarged readable nametags", RENDER));
         m.add(new SimpleModule("StorageESP", "Highlights chests and storage", RENDER));
         m.add(new SimpleModule("Xray", "See through blocks to find ores", RENDER, GLFW.GLFW_KEY_X));
@@ -73,7 +112,6 @@ public final class Modules {
         m.add(new SimpleModule("Chams", "Renders entities with a shader", RENDER));
         m.add(new SimpleModule("BlockESP", "Highlights configured blocks", RENDER));
         m.add(new SimpleModule("Breadcrumbs", "Leaves a trail where you walk", RENDER));
-        m.add(new SimpleModule("Zoom", "Optifine-style zoom", RENDER, GLFW.GLFW_KEY_C));
 
         // ---------------- PLAYER ----------------
         m.add(new SimpleModule("AutoTool", "Switches to the best tool", PLAYER));

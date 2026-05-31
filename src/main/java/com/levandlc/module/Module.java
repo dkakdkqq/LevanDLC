@@ -1,6 +1,10 @@
 package com.levandlc.module;
 
+import com.levandlc.module.setting.Setting;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base class for every feature in the mod.
@@ -24,6 +28,9 @@ public abstract class Module {
     private final String name;
     private final String description;
     private final Category category;
+
+    /** Per-module configurable settings, shown in the GUI's settings panel. */
+    private final List<Setting> settings = new ArrayList<>();
 
     /** GLFW key code used to toggle the module, or {@link GLFW#GLFW_KEY_UNKNOWN} if unbound. */
     private int key;
@@ -118,5 +125,23 @@ public abstract class Module {
 
     public void setKey(int key) {
         this.key = key;
+    }
+
+    // ------------------------------------------------------------------
+    // Settings.
+    // ------------------------------------------------------------------
+
+    /** Registers a setting and returns it (for fluent field assignment). */
+    protected <T extends Setting> T addSetting(T setting) {
+        settings.add(setting);
+        return setting;
+    }
+
+    public List<Setting> getSettings() {
+        return settings;
+    }
+
+    public boolean hasSettings() {
+        return !settings.isEmpty();
     }
 }

@@ -23,6 +23,11 @@ public class SimpleModule extends Module {
         super(name, description, category);
     }
 
+    /** Public passthrough so the registry can attach settings fluently. */
+    public <T extends com.levandlc.module.setting.Setting> T with(T setting) {
+        return addSetting(setting);
+    }
+
     @Override
     public void onEnable() {
         LevanDLC.LOGGER.info("[Module] {} -> ON", getName());
