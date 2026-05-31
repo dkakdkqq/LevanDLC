@@ -64,6 +64,8 @@ public final class Modules {
         m.add(new SimpleModule("SuperKnockback", "Increases knockback dealt", COMBAT));
         m.add(new SimpleModule("AutoArmor", "Equips the best armor automatically", COMBAT));
         m.add(new VelocityModule()); // real, working
+        m.add(new KeyHoldModule("AutoClicker", "Holds left-click to attack/mine", COMBAT, NONE,
+                mc -> mc.options.attackKey));
         m.add(new SimpleModule("BowAimbot", "Auto-aims projectiles at targets", COMBAT));
 
         // ---------------- MOVEMENT ---------------- (real, working modules)
@@ -99,6 +101,10 @@ public final class Modules {
         m.add(new HoverModule());
         m.add(new AutoJumpBoostModule());
         m.add(new AutoJumpTimerModule());
+        m.add(new TowerModule());
+        m.add(new LavaSurfModule());
+        m.add(new WaterSinkModule());
+        m.add(new SafeWalkModule());
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
@@ -113,6 +119,7 @@ public final class Modules {
         m.add(new NoHurtCamModule());
         m.add(new RotationSpinModule());
         m.add(new ViewLockModule());
+        m.add(new DerpModule());
         m.add(new SimpleModule("Fullbright", "Maximum brightness everywhere", RENDER, GLFW.GLFW_KEY_H));
         SimpleModule zoom = new SimpleModule("Zoom", "Optifine-style zoom", RENDER, GLFW.GLFW_KEY_C);
         zoom.with(new NumberSetting("Level", 4, 2, 10, 1));
@@ -131,6 +138,8 @@ public final class Modules {
         // ---------------- PLAYER ----------------
         m.add(new AutoRespawnModule());
         m.add(new AntiHungerModule());
+        m.add(new KeyHoldModule("AutoUse", "Holds right-click (use/place/eat)", PLAYER, NONE,
+                mc -> mc.options.useKey));
         m.add(new SimpleModule("AutoTool", "Switches to the best tool", PLAYER));
         m.add(new SimpleModule("FastPlace", "Removes block placement delay", PLAYER));
         m.add(new SimpleModule("FastBreak", "Breaks blocks faster", PLAYER));
