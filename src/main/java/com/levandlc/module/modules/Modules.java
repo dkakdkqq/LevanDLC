@@ -83,6 +83,7 @@ public final class Modules {
         m.add(new SpiderModule());
         m.add(new GlideModule());
         m.add(new FastFallModule());
+        m.add(new HighJumpModule());
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("Jesus", "Walk on water surfaces", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
