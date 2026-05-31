@@ -69,27 +69,23 @@ public final class Modules {
         m.add(velocity);
         m.add(new SimpleModule("BowAimbot", "Auto-aims projectiles at targets", COMBAT));
 
-        // ---------------- MOVEMENT ----------------
-        m.add(new SprintModule(GLFW.GLFW_KEY_UNKNOWN)); // real, working module (reference pattern)
-        SimpleModule flight = new SimpleModule("Flight", "Lets you fly freely", MOVEMENT, GLFW.GLFW_KEY_G);
-        flight.with(new NumberSetting("Speed", 2.0, 0.5, 10.0, 0.5));
-        flight.with(new ModeSetting("Mode", "Creative", "Vanilla", "Glide"));
-        m.add(flight);
-        SimpleModule speed = new SimpleModule("Speed", "Move faster than normal", MOVEMENT);
-        speed.with(new NumberSetting("Multiplier", 1.5, 1.0, 5.0, 0.1));
-        speed.with(new ModeSetting("Mode", "Strafe", "Bhop", "OnGround"));
-        m.add(speed);
-        m.add(new SimpleModule("NoFall", "Prevents fall damage", MOVEMENT));
+        // ---------------- MOVEMENT ---------------- (real, working modules)
+        m.add(new SprintModule(GLFW.GLFW_KEY_UNKNOWN));
+        m.add(new FlightModule(GLFW.GLFW_KEY_G));
+        m.add(new SpeedModule());
+        m.add(new NoFallModule());
+        m.add(new KeyHoldModule("AutoWalk", "Walks forward automatically", MOVEMENT, NONE,
+                mc -> mc.options.forwardKey));
+        m.add(new KeyHoldModule("AutoSneak", "Permanently sneak", MOVEMENT, NONE,
+                mc -> mc.options.sneakKey));
+        m.add(new KeyHoldModule("AutoJump", "Holds jump continuously", MOVEMENT, NONE,
+                mc -> mc.options.jumpKey));
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("Spider", "Climb walls like a spider", MOVEMENT));
         m.add(new SimpleModule("Jesus", "Walk on water surfaces", MOVEMENT));
-        m.add(new SimpleModule("AutoWalk", "Walks forward automatically", MOVEMENT));
-        m.add(new SimpleModule("Strafe", "Air-strafe for smoother control", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
-        m.add(new SimpleModule("Velocity+", "Fine-grained knockback control", MOVEMENT));
         m.add(new SimpleModule("NoSlow", "Removes slowdown from items/blocks", MOVEMENT));
-        m.add(new SimpleModule("Sneak", "Permanently sneak", MOVEMENT));
 
         // ---------------- RENDER ----------------
         SimpleModule esp = new SimpleModule("ESP", "Highlights entities through walls", RENDER);
