@@ -70,7 +70,7 @@ public final class Modules {
         m.add(new SimpleModule("BowAimbot", "Auto-aims projectiles at targets", COMBAT));
 
         // ---------------- MOVEMENT ----------------
-        m.add(new SimpleModule("Sprint", "Always sprint forward", MOVEMENT));
+        m.add(new SprintModule(GLFW.GLFW_KEY_UNKNOWN)); // real, working module (reference pattern)
         SimpleModule flight = new SimpleModule("Flight", "Lets you fly freely", MOVEMENT, GLFW.GLFW_KEY_G);
         flight.with(new NumberSetting("Speed", 2.0, 0.5, 10.0, 0.5));
         flight.with(new ModeSetting("Mode", "Creative", "Vanilla", "Glide"));
