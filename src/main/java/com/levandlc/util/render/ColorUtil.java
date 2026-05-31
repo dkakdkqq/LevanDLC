@@ -132,6 +132,87 @@ public final class ColorUtil {
         return rainbow(2000, offset, 1f, 1f);
     }
 
+    // ------------------------------------------------------------------
+    // Advanced manipulation.
+    // ------------------------------------------------------------------
+
+    /** Darkens a color toward black by {@code factor} (0.0-1.0), keeping its alpha. */
+    public static int darker(int color, float factor) {
+        factor = clamp01(factor);
+        return argb(alpha(color),
+                Math.round(red(color) * (1f - factor)),
+                Math.round(green(color) * (1f - factor)),
+                Math.round(blue(color) * (1f - factor)));
+    }
+
+    /** Brightens a color toward white by {@code factor} (0.0-1.0), keeping its alpha. */
+    public static int brighter(int color, float factor) {
+        factor = clamp01(factor);
+        return argb(alpha(color),
+                Math.round(red(color) + (255 - red(color)) * factor),
+                Math.round(green(color) + (255 - green(color)) * factor),
+                Math.round(blue(color) + (255 - blue(color)) * factor));
+    }
+
+    /**
+     * Alpha-composites {@code src} over {@code dst} (standard "source-over").
+     * Useful for previewing how a translucent overlay will look on a background.
+     */
+    public static int blend(int src, int dst) {
+        float sa = alpha(src) / 255f;
+        float da = alpha(dst) / 255f;
+        float outA = sa + da * (1f - sa);
+        if (outA <= 0f) {
+            return 0;
+        }
+        int r = Math.round((red(src) * sa + red(dst) * da * (1f - sa)) / outA);
+        int g = Math.round((green(src) * sa + green(dst) * da * (1f - sa)) / outA);
+        int b = Math.round((blue(src) * sa + blue(dst) * da * (1f - sa)) / outA);
+        return argb(Math.round(outA * 255f), r, g, b);
+    }
+
+    /**
+     * Multi-stop gradient. Maps {@code t} in [0,1] across the evenly-spaced color
+     * stops (e.g. for a 3-color HUD bar or a fancy ClickGUI accent).
+     */
+    public static int gradient(float t, int... colors) {
+        if (colors == null || colors.length == 0) {
+            return 0;
+        }
+        if (colors.length == 1) {
+            return colors[0];
+        }
+        t = clamp01(t);
+        float scaled = t * (colors.length - 1);
+        int i = (int) Math.floor(scaled);
+        if (i >= colors.length - 1) {
+            return colors[colors.length - 1];
+        }
+        return interpolate(colors[i], colors[i + 1], scaled - i);
+    }
+
+    /** Formats a color as {@code #AARRGGBB}. */
+    public static String toHexString(int color) {
+        return String.format("#%08X", color);
+    }
+
+    /**
+     * Parses {@code #RGB}-style hex. Accepts an optional leading '#', and either
+     * 6 digits (RRGGBB, assumed opaque) or 8 digits (AARRGGBB).
+     */
+    public static int fromHexString(String hex) {
+        String s = hex.startsWith("#") ? hex.substring(1) : hex;
+        long value = Long.parseLong(s, 16);
+        if (s.length() <= 6) {
+            return 0xFF000000 | (int) (value & 0xFFFFFF);
+        }
+        return (int) value;
+    }
+
+    private static float clamp01(float value) {
+        return Math.max(0f, Math.min(1f, value));
+    }
+
     private static int clamp255(float value) {
         return (int) Math.max(0f, Math.min(255f, value));
     }

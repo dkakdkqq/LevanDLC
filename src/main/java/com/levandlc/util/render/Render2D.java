@@ -276,6 +276,40 @@ public final class Render2D {
     }
 
     // ------------------------------------------------------------------
+    // Circles (scan-line based, fill()-only - version-safe).
+    // ------------------------------------------------------------------
+
+    /** Filled circle centered at (cx, cy). Great for HUD indicators / dots. */
+    public static void circleFilled(DrawContext ctx, int cx, int cy, int radius, int color) {
+        if (radius <= 0) {
+            return;
+        }
+        for (int dy = -radius; dy <= radius; dy++) {
+            int dx = (int) Math.round(Math.sqrt((double) radius * radius - (double) dy * dy));
+            ctx.fill(cx - dx, cy + dy, cx + dx, cy + dy + 1, color);
+        }
+    }
+
+    /** Ring / circle outline of the given thickness. */
+    public static void circleOutline(DrawContext ctx, int cx, int cy, int radius, int thickness, int color) {
+        if (radius <= 0 || thickness <= 0) {
+            return;
+        }
+        int inner = Math.max(0, radius - thickness);
+        for (int dy = -radius; dy <= radius; dy++) {
+            int outerDx = (int) Math.round(Math.sqrt((double) radius * radius - (double) dy * dy));
+            double innerSq = (double) inner * inner - (double) dy * dy;
+            if (innerSq > 0) {
+                int innerDx = (int) Math.round(Math.sqrt(innerSq));
+                ctx.fill(cx - outerDx, cy + dy, cx - innerDx, cy + dy + 1, color); // left band
+                ctx.fill(cx + innerDx, cy + dy, cx + outerDx, cy + dy + 1, color); // right band
+            } else {
+                ctx.fill(cx - outerDx, cy + dy, cx + outerDx, cy + dy + 1, color);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Screen dimensions.
     // ------------------------------------------------------------------
 
