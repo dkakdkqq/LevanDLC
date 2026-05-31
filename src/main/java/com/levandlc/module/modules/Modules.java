@@ -63,10 +63,7 @@ public final class Modules {
         m.add(new SimpleModule("AntiBot", "Ignores fake/bot players", COMBAT));
         m.add(new SimpleModule("SuperKnockback", "Increases knockback dealt", COMBAT));
         m.add(new SimpleModule("AutoArmor", "Equips the best armor automatically", COMBAT));
-        SimpleModule velocity = new SimpleModule("Velocity", "Reduces or cancels knockback taken", COMBAT);
-        velocity.with(new NumberSetting("Horizontal", 0, 0, 100, 1));
-        velocity.with(new NumberSetting("Vertical", 0, 0, 100, 1));
-        m.add(velocity);
+        m.add(new VelocityModule()); // real, working
         m.add(new SimpleModule("BowAimbot", "Auto-aims projectiles at targets", COMBAT));
 
         // ---------------- MOVEMENT ---------------- (real, working modules)
@@ -88,6 +85,11 @@ public final class Modules {
         m.add(new NoSlowModule());
         m.add(new FastLadderModule());
         m.add(new MultiJumpModule());
+        m.add(new BhopModule());
+        m.add(new FastSwimModule());
+        m.add(new NoWebModule());
+        m.add(new AutoSprintModule());
+        m.add(new FreezeModule());
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
@@ -116,6 +118,7 @@ public final class Modules {
 
         // ---------------- PLAYER ----------------
         m.add(new AutoRespawnModule());
+        m.add(new AntiHungerModule());
         m.add(new SimpleModule("AutoTool", "Switches to the best tool", PLAYER));
         m.add(new SimpleModule("FastPlace", "Removes block placement delay", PLAYER));
         m.add(new SimpleModule("FastBreak", "Breaks blocks faster", PLAYER));
