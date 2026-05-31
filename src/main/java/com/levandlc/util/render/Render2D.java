@@ -7,18 +7,13 @@ import net.minecraft.client.gui.DrawContext;
 /**
  * High-level 2D / HUD drawing helpers built on top of {@link DrawContext}.
  *
- * <p>{@code DrawContext}'s primitive operations ({@code fill}, {@code drawBorder},
- * {@code drawText}, scissor) are stable across the 1.21.x line, so this class is
- * the most version-resilient way to draw on screen.
- *
- * <p><b>Version-sensitive areas are tagged with {@code [1.21.11 API]}.</b> The two
- * things that changed during 1.21.x are:
- * <ul>
- *     <li>2D transforms moved from {@code MatrixStack} to {@code Matrix3x2fStack}
- *         (JOML) around 1.21.6 - see {@link #pushMatrix(DrawContext)} below.</li>
- *     <li>{@code drawTexture} now requires a {@code RenderPipeline}/{@code RenderLayer}
- *         function as its first argument.</li>
- * </ul>
+ * <p>Design goal: <b>maximum version resilience</b>. Every primitive here is
+ * implemented using only the two most stable {@code DrawContext} operations -
+ * {@link DrawContext#fill(int, int, int, int, int)} and
+ * {@code drawText(...)}. Borders, gradients, lines and circles are all composed
+ * from {@code fill} rectangles, so this class avoids the parts of the rendering
+ * API that change between 1.21.x builds (gradient render layers, the 2D matrix
+ * stack, scissor stack internals, etc.).
  */
 public final class Render2D {
 
@@ -43,9 +38,12 @@ public final class Render2D {
         ctx.fill(x, y, x + width, y + height, color);
     }
 
-    /** 1px outline rectangle. */
+    /** 1px outline rectangle, composed from four fills. */
     public static void outline(DrawContext ctx, int x, int y, int width, int height, int color) {
-        ctx.drawBorder(x, y, width, height, color);
+        ctx.fill(x, y, x + width, y + 1, color);                       // top
+        ctx.fill(x, y + height - 1, x + width, y + height, color);     // bottom
+        ctx.fill(x, y, x + 1, y + height, color);                      // left
+        ctx.fill(x + width - 1, y, x + width, y + height, color);      // right
     }
 
     /** Filled rectangle with a separate outline color. */
@@ -56,10 +54,7 @@ public final class Render2D {
     }
 
     // ------------------------------------------------------------------
-    // Rounded rectangles.
-    //
-    // Built purely from horizontal fill() strips, so they need no custom
-    // geometry / shaders and work on every Minecraft version.
+    // Rounded rectangles (horizontal fill() strips - version-safe).
     // ------------------------------------------------------------------
 
     /** Filled rectangle with rounded corners of the given radius. */
@@ -81,20 +76,15 @@ public final class Render2D {
         for (int i = 0; i < r; i++) {
             double dy = r - (i + 0.5);
             int inset = (int) Math.round(r - Math.sqrt(r * r - dy * dy));
-
-            // Top row.
-            ctx.fill(x + inset, y + i, x + width - inset, y + i + 1, color);
-            // Bottom row (mirrored).
-            ctx.fill(x + inset, y + height - 1 - i, x + width - inset, y + height - i, color);
+            ctx.fill(x + inset, y + i, x + width - inset, y + i + 1, color);                       // top row
+            ctx.fill(x + inset, y + height - 1 - i, x + width - inset, y + height - i, color);      // bottom row
         }
     }
 
-    /** Rounded filled rectangle with a separate rounded "outline" drawn on top. */
+    /** Rounded filled rectangle with a 1px outline drawn on the straight edges. */
     public static void roundedRectOutlined(DrawContext ctx, int x, int y, int width, int height,
                                            int radius, int fillColor, int outlineColor) {
         roundedRect(ctx, x, y, width, height, radius, fillColor);
-        // Cheap outline: a slightly larger rounded rect behind would be ideal, but
-        // overlaying a 1px frame on the straight edges reads well for GUI panels.
         ctx.fill(x + radius, y, x + width - radius, y + 1, outlineColor);
         ctx.fill(x + radius, y + height - 1, x + width - radius, y + height, outlineColor);
         ctx.fill(x, y + radius, x + 1, y + height - radius, outlineColor);
@@ -102,33 +92,38 @@ public final class Render2D {
     }
 
     // ------------------------------------------------------------------
-    // Lines.
+    // Lines (composed from fills).
     // ------------------------------------------------------------------
 
     public static void horizontalLine(DrawContext ctx, int x1, int x2, int y, int color) {
-        ctx.drawHorizontalLine(x1, x2, y, color);
+        int from = Math.min(x1, x2);
+        int to = Math.max(x1, x2);
+        ctx.fill(from, y, to + 1, y + 1, color);
     }
 
     public static void verticalLine(DrawContext ctx, int x, int y1, int y2, int color) {
-        ctx.drawVerticalLine(x, y1, y2, color);
+        int from = Math.min(y1, y2);
+        int to = Math.max(y1, y2);
+        ctx.fill(x, from, x + 1, to + 1, color);
     }
 
     // ------------------------------------------------------------------
-    // Gradients.
+    // Gradients (per-strip fill interpolation).
     // ------------------------------------------------------------------
 
     /** Vertical gradient (top color -> bottom color). */
     public static void gradientVertical(DrawContext ctx, int x, int y, int width, int height,
                                         int topColor, int bottomColor) {
-        ctx.fillGradient(x, y, x + width, y + height, topColor, bottomColor);
+        if (height <= 0) {
+            return;
+        }
+        for (int i = 0; i < height; i++) {
+            float t = height == 1 ? 0f : i / (float) (height - 1);
+            ctx.fill(x, y + i, x + width, y + i + 1, ColorUtil.interpolate(topColor, bottomColor, t));
+        }
     }
 
-    /**
-     * Horizontal gradient (left color -> right color).
-     *
-     * <p>Implemented as per-column strips using {@code fill} so it works on every
-     * version without depending on the gradient render layer overloads.
-     */
+    /** Horizontal gradient (left color -> right color). */
     public static void gradientHorizontal(DrawContext ctx, int x, int y, int width, int height,
                                           int leftColor, int rightColor) {
         if (width <= 0) {
@@ -153,6 +148,18 @@ public final class Render2D {
         ctx.drawText(mc().textRenderer, text, centerX - textWidth(text) / 2, y, color, shadow);
     }
 
+    /** Right-aligned text (useful for HUD array-list module names). */
+    public static void textRight(DrawContext ctx, String text, int rightX, int y, int color, boolean shadow) {
+        ctx.drawText(mc().textRenderer, text, rightX - textWidth(text), y, color, shadow);
+    }
+
+    /** Vertically centers text within a row of {@code rowHeight} starting at {@code y}. */
+    public static void textVerticallyCentered(DrawContext ctx, String text, int x, int y, int rowHeight,
+                                               int color, boolean shadow) {
+        int ty = y + (rowHeight - textHeight()) / 2;
+        ctx.drawText(mc().textRenderer, text, x, ty, color, shadow);
+    }
+
     public static int textWidth(String text) {
         return mc().textRenderer.getWidth(text);
     }
@@ -166,45 +173,6 @@ public final class Render2D {
     }
 
     // ------------------------------------------------------------------
-    // Scissor (clipping).
-    // ------------------------------------------------------------------
-
-    /** Restricts subsequent drawing to the given rectangle. Pair with {@link #unscissor(DrawContext)}. */
-    public static void scissor(DrawContext ctx, int x, int y, int width, int height) {
-        ctx.enableScissor(x, y, x + width, y + height);
-    }
-
-    public static void unscissor(DrawContext ctx) {
-        ctx.disableScissor();
-    }
-
-    // ------------------------------------------------------------------
-    // Transforms.
-    // ------------------------------------------------------------------
-    //
-    // [1.21.11 API] As of ~1.21.6, DrawContext#getMatrices() returns a JOML
-    // Matrix3x2fStack (2D) instead of the old MatrixStack. The calls below use
-    // that newer API. If you target an earlier 1.21.x build, swap to:
-    //     ctx.getMatrices().push();  /  pop();  /  translate(x, y, z);  /  scale(x, y, z);
-    // ------------------------------------------------------------------
-
-    public static void pushMatrix(DrawContext ctx) {
-        ctx.getMatrices().pushMatrix();
-    }
-
-    public static void popMatrix(DrawContext ctx) {
-        ctx.getMatrices().popMatrix();
-    }
-
-    public static void translate(DrawContext ctx, float x, float y) {
-        ctx.getMatrices().translate(x, y);
-    }
-
-    public static void scale(DrawContext ctx, float x, float y) {
-        ctx.getMatrices().scale(x, y);
-    }
-
-    // ------------------------------------------------------------------
     // ClickGUI / HUD helpers.
     // ------------------------------------------------------------------
 
@@ -215,7 +183,7 @@ public final class Render2D {
 
     /**
      * Soft drop shadow behind a rectangle, faked with concentric translucent
-     * frames so it needs no blur shader (works on every version).
+     * frames (built from {@link #outline}) so it needs no blur shader.
      *
      * @param spread how many pixels the shadow extends outward.
      * @param color  base shadow color; its alpha is faded out across the spread.
@@ -227,10 +195,9 @@ public final class Render2D {
         }
         int baseAlpha = ColorUtil.alpha(color);
         for (int i = spread; i >= 1; i--) {
-            float t = i / (float) spread;            // 1 at the outer edge, ~0 near the box
+            float t = i / (float) spread;
             int alpha = Math.round(baseAlpha * (1f - t) * 0.5f);
-            int ring = ColorUtil.withAlpha(color, alpha);
-            ctx.drawBorder(x - i, y - i, width + i * 2, height + i * 2, ring);
+            outline(ctx, x - i, y - i, width + i * 2, height + i * 2, ColorUtil.withAlpha(color, alpha));
         }
     }
 
@@ -258,21 +225,9 @@ public final class Render2D {
                                  float fraction, int backgroundColor) {
         fraction = Math.max(0f, Math.min(1f, fraction));
         int color = fraction > 0.5f
-                ? ColorUtil.interpolate(0xFFFFFF00, 0xFF00FF00, (fraction - 0.5f) * 2f)  // yellow -> green
-                : ColorUtil.interpolate(0xFFFF0000, 0xFFFFFF00, fraction * 2f);          // red -> yellow
+                ? ColorUtil.interpolate(0xFFFFFF00, 0xFF00FF00, (fraction - 0.5f) * 2f)
+                : ColorUtil.interpolate(0xFFFF0000, 0xFFFFFF00, fraction * 2f);
         progressBar(ctx, x, y, width, height, fraction, backgroundColor, color);
-    }
-
-    /** Right-aligned text (useful for HUD array-list module names). */
-    public static void textRight(DrawContext ctx, String text, int rightX, int y, int color, boolean shadow) {
-        ctx.drawText(mc().textRenderer, text, rightX - textWidth(text), y, color, shadow);
-    }
-
-    /** Vertically centers text within a row of {@code rowHeight} starting at {@code y}. */
-    public static void textVerticallyCentered(DrawContext ctx, String text, int x, int y, int rowHeight,
-                                               int color, boolean shadow) {
-        int ty = y + (rowHeight - textHeight()) / 2;
-        ctx.drawText(mc().textRenderer, text, x, ty, color, shadow);
     }
 
     // ------------------------------------------------------------------
@@ -301,8 +256,8 @@ public final class Render2D {
             double innerSq = (double) inner * inner - (double) dy * dy;
             if (innerSq > 0) {
                 int innerDx = (int) Math.round(Math.sqrt(innerSq));
-                ctx.fill(cx - outerDx, cy + dy, cx - innerDx, cy + dy + 1, color); // left band
-                ctx.fill(cx + innerDx, cy + dy, cx + outerDx, cy + dy + 1, color); // right band
+                ctx.fill(cx - outerDx, cy + dy, cx - innerDx, cy + dy + 1, color);
+                ctx.fill(cx + innerDx, cy + dy, cx + outerDx, cy + dy + 1, color);
             } else {
                 ctx.fill(cx - outerDx, cy + dy, cx + outerDx, cy + dy + 1, color);
             }

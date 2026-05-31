@@ -20,8 +20,9 @@ import java.util.List;
  *     <li>Left-click a module row to toggle it.</li>
  * </ul>
  *
- * The expand/collapse uses a smoothed {@link Animation} and a scissor region so
- * the module list slides open and closed cleanly.
+ * <p>Click handling is driven by {@link ClickGuiScreen} polling GLFW mouse
+ * state (edge-detected), so this class does not depend on the version-sensitive
+ * {@code Screen} mouse-event signatures.
  */
 public class Panel {
 
@@ -67,15 +68,17 @@ public class Panel {
         // Body (drawn first so the header overlaps its top edge).
         if (bodyHeight > 0) {
             int bodyTop = y + HEADER_HEIGHT;
-            Render2D.scissor(ctx, x, bodyTop, width, bodyHeight);
-            Render2D.rect(ctx, x, bodyTop, width, fullBody, ColorUtil.rgba(18, 18, 24, 235));
+            Render2D.rect(ctx, x, bodyTop, width, bodyHeight, ColorUtil.rgba(18, 18, 24, 235));
 
+            // Render rows that fit within the currently revealed height.
             int rowY = bodyTop;
             for (ModuleButton button : buttons) {
+                if (rowY + ModuleButton.HEIGHT > bodyTop + bodyHeight) {
+                    break;
+                }
                 button.render(ctx, x, rowY, width, mouseX, mouseY);
                 rowY += ModuleButton.HEIGHT;
             }
-            Render2D.unscissor(ctx);
         }
 
         // Header.
@@ -88,7 +91,13 @@ public class Panel {
                 y + (HEADER_HEIGHT - Render2D.textHeight()) / 2, ColorUtil.rgb(176, 176, 192), true);
     }
 
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    /**
+     * Handles a mouse press at (mouseX, mouseY).
+     *
+     * @param button 0 = left, 1 = right.
+     * @return true if this panel consumed the click.
+     */
+    public boolean onMousePressed(double mouseX, double mouseY, int button) {
         if (Render2D.isHovered(mouseX, mouseY, x, y, width, HEADER_HEIGHT)) {
             if (button == 0) {
                 dragging = true;
@@ -114,7 +123,7 @@ public class Panel {
         return false;
     }
 
-    public void mouseReleased(int button) {
+    public void onMouseReleased(int button) {
         if (button == 0) {
             dragging = false;
         }
