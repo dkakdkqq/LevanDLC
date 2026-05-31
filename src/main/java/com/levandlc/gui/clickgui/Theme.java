@@ -44,6 +44,9 @@ public final class Theme {
     public static final int PADDING    = 10;
     public static final int CORNER     = 7;
 
+    /** Categories start this far down the sidebar (lowered per request). */
+    public static final int CATEGORY_TOP_OFFSET = 22;
+
     /** Accent gradient pair used for the title and toggle pills. */
     public static int accentGradientStart() {
         return ColorUtil.rgb(198, 130, 255);
