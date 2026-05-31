@@ -1,9 +1,8 @@
 package com.levandlc;
 
 import com.levandlc.gui.clickgui.ClickGuiScreen;
-import com.levandlc.module.Category;
 import com.levandlc.module.ModuleManager;
-import com.levandlc.module.modules.ExampleModule;
+import com.levandlc.module.modules.Modules;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
@@ -43,23 +42,12 @@ public class LevanDLC implements ClientModInitializer {
     }
 
     /**
-     * Registers the mod's modules. These are no-op {@link ExampleModule}s purely
-     * to populate the ClickGUI - replace them with real features.
+     * Registers the mod's module catalogue (see {@link Modules#all()}).
      */
     private void registerModules() {
-        MODULE_MANAGER.registerAll(
-                new ExampleModule("KillAura", Category.COMBAT, GLFW.GLFW_KEY_R),
-                new ExampleModule("Criticals", Category.COMBAT),
-                new ExampleModule("AutoCrystal", Category.COMBAT),
-
-                new ExampleModule("Sprint", Category.MOVEMENT),
-                new ExampleModule("Velocity", Category.MOVEMENT),
-                new ExampleModule("Flight", Category.MOVEMENT, GLFW.GLFW_KEY_G),
-
-                new ExampleModule("ESP", Category.RENDER),
-                new ExampleModule("Tracers", Category.RENDER),
-                new ExampleModule("Fullbright", Category.RENDER, GLFW.GLFW_KEY_H)
-        );
+        for (var module : Modules.all()) {
+            MODULE_MANAGER.register(module);
+        }
     }
 
     /**

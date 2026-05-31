@@ -1,12 +1,14 @@
 package com.levandlc.module;
 
 /**
- * Logical grouping used to organize {@link Module}s, e.g. in a UI or click GUI.
+ * Logical grouping used to organize {@link Module}s in the ClickGUI sidebar.
  */
 public enum Category {
     COMBAT("Combat"),
     MOVEMENT("Movement"),
-    RENDER("Render");
+    RENDER("Render"),
+    PLAYER("Player"),
+    UTIL("Util");
 
     private final String displayName;
 

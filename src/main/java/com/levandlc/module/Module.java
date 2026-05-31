@@ -5,8 +5,9 @@ import org.lwjgl.glfw.GLFW;
 /**
  * Base class for every feature in the mod.
  *
- * <p>A module owns a {@link #name}, a {@link Category} and an optional toggle
- * {@link #key keybind}. Lifecycle hooks are invoked by the {@link ModuleManager}:
+ * <p>A module owns a {@link #name}, a {@link #description}, a {@link Category}
+ * and an optional toggle {@link #key keybind}. Lifecycle hooks are invoked by
+ * the {@link ModuleManager}:
  * <ul>
  *     <li>{@link #onEnable()} / {@link #onDisable()} on state transitions,</li>
  *     <li>{@link #onUpdate()} once per client tick while enabled.</li>
@@ -16,12 +17,12 @@ import org.lwjgl.glfw.GLFW;
  * <p>Note: a world-render hook is intentionally omitted here. World-space
  * rendering depends on Fabric/Minecraft render APIs that change frequently
  * between 1.21.x builds, so it is kept out of the core to keep this class
- * stable and compilable. Add it back in a dedicated, version-pinned module
- * once the target render API is confirmed.
+ * stable and compilable.
  */
 public abstract class Module {
 
     private final String name;
+    private final String description;
     private final Category category;
 
     /** GLFW key code used to toggle the module, or {@link GLFW#GLFW_KEY_UNKNOWN} if unbound. */
@@ -29,18 +30,25 @@ public abstract class Module {
 
     private boolean enabled;
 
-    protected Module(String name, Category category, int key) {
+    protected Module(String name, String description, Category category, int key) {
         this.name = name;
+        this.description = description;
         this.category = category;
         this.key = key;
         this.enabled = false;
     }
 
-    /**
-     * Creates an unbound module (no toggle keybind).
-     */
+    protected Module(String name, String description, Category category) {
+        this(name, description, category, GLFW.GLFW_KEY_UNKNOWN);
+    }
+
+    protected Module(String name, Category category, int key) {
+        this(name, "", category, key);
+    }
+
+    /** Creates an unbound module (no toggle keybind). */
     protected Module(String name, Category category) {
-        this(name, category, GLFW.GLFW_KEY_UNKNOWN);
+        this(name, "", category, GLFW.GLFW_KEY_UNKNOWN);
     }
 
     // ------------------------------------------------------------------
@@ -94,6 +102,10 @@ public abstract class Module {
 
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public Category getCategory() {
