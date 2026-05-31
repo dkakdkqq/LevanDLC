@@ -95,6 +95,10 @@ public final class Modules {
         m.add(new WaterSurfModule());
         m.add(new AntiVoidModule());
         m.add(new AntiLevitationModule());
+        m.add(new GodSprintModule());
+        m.add(new HoverModule());
+        m.add(new AutoJumpBoostModule());
+        m.add(new AutoJumpTimerModule());
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
@@ -107,6 +111,8 @@ public final class Modules {
         m.add(esp);
         m.add(new SimpleModule("Tracers", "Draws lines to entities", RENDER));
         m.add(new NoHurtCamModule());
+        m.add(new RotationSpinModule());
+        m.add(new ViewLockModule());
         m.add(new SimpleModule("Fullbright", "Maximum brightness everywhere", RENDER, GLFW.GLFW_KEY_H));
         SimpleModule zoom = new SimpleModule("Zoom", "Optifine-style zoom", RENDER, GLFW.GLFW_KEY_C);
         zoom.with(new NumberSetting("Level", 4, 2, 10, 1));
@@ -139,6 +145,7 @@ public final class Modules {
 
         // ---------------- UTIL ----------------
         m.add(new AntiAFKModule());
+        m.add(new AntiKickModule());
         m.add(new SimpleModule("HUD", "On-screen information display", UTIL));
         m.add(new SimpleModule("FPSDisplay", "Shows current frame rate", UTIL));
         m.add(new SimpleModule("CoordsDisplay", "Shows your coordinates", UTIL));
