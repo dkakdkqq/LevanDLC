@@ -2,6 +2,7 @@ package com.levandlc.util.render;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -224,28 +225,36 @@ public final class Renderer {
 
     // ==================================================================
     // Text
+    //
+    // All text routes through our custom GUI font (Fonts.REGULAR) by wrapping
+    // strings in a styled Text. Width/height are measured for the styled text so
+    // alignment stays correct regardless of which font is active.
     // ==================================================================
 
+    private static Text styled(String s) {
+        return Fonts.styled(s);
+    }
+
     public Renderer text(String text, float x, float y, int color, boolean shadow) {
-        ctx.drawText(mc().textRenderer, text, Math.round(x), Math.round(y), color, shadow);
+        ctx.drawText(mc().textRenderer, styled(text), Math.round(x), Math.round(y), color, shadow);
         return this;
     }
 
     public Renderer textCentered(String text, float centerX, float y, int color, boolean shadow) {
-        ctx.drawText(mc().textRenderer, text, Math.round(centerX - textWidth(text) / 2f),
+        ctx.drawText(mc().textRenderer, styled(text), Math.round(centerX - textWidth(text) / 2f),
                 Math.round(y), color, shadow);
         return this;
     }
 
     public Renderer textRight(String text, float rightX, float y, int color, boolean shadow) {
-        ctx.drawText(mc().textRenderer, text, Math.round(rightX - textWidth(text)),
+        ctx.drawText(mc().textRenderer, styled(text), Math.round(rightX - textWidth(text)),
                 Math.round(y), color, shadow);
         return this;
     }
 
     public Renderer textVCentered(String text, float x, float y, float rowHeight, int color, boolean shadow) {
         float ty = y + (rowHeight - textHeight()) / 2f;
-        ctx.drawText(mc().textRenderer, text, Math.round(x), Math.round(ty), color, shadow);
+        ctx.drawText(mc().textRenderer, styled(text), Math.round(x), Math.round(ty), color, shadow);
         return this;
     }
 
@@ -267,7 +276,7 @@ public final class Renderer {
     }
 
     public static int textWidth(String text) {
-        return mc().textRenderer.getWidth(text);
+        return mc().textRenderer.getWidth(styled(text));
     }
 
     public static int textHeight() {
