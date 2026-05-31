@@ -1,10 +1,12 @@
 package com.levandlc;
 
 import com.levandlc.gui.clickgui.ClickGuiScreen;
+import com.levandlc.gui.hud.Hud;
 import com.levandlc.module.ModuleManager;
 import com.levandlc.module.modules.Modules;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -67,6 +69,10 @@ public class LevanDLC implements ClientModInitializer {
                 MODULE_MANAGER.onUpdate();
             }
         });
+
+        // HUD overlay (watermark + module array-list). Lambda param types are
+        // inferred, so no version-volatile render type is referenced directly.
+        HudRenderCallback.EVENT.register((context, tickCounter) -> Hud.render(context));
     }
 
     /** Toggles the ClickGUI on a single press of {@link #CLICK_GUI_KEY} (edge-detected). */
