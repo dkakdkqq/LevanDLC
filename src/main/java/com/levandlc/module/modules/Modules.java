@@ -84,11 +84,11 @@ public final class Modules {
         m.add(new GlideModule());
         m.add(new FastFallModule());
         m.add(new HighJumpModule());
+        m.add(new JesusModule());
+        m.add(new NoSlowModule());
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
-        m.add(new SimpleModule("Jesus", "Walk on water surfaces", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
-        m.add(new SimpleModule("NoSlow", "Removes slowdown from items/blocks", MOVEMENT));
 
         // ---------------- RENDER ----------------
         SimpleModule esp = new SimpleModule("ESP", "Highlights entities through walls", RENDER);
@@ -113,6 +113,7 @@ public final class Modules {
         m.add(new SimpleModule("Breadcrumbs", "Leaves a trail where you walk", RENDER));
 
         // ---------------- PLAYER ----------------
+        m.add(new AutoRespawnModule());
         m.add(new SimpleModule("AutoTool", "Switches to the best tool", PLAYER));
         m.add(new SimpleModule("FastPlace", "Removes block placement delay", PLAYER));
         m.add(new SimpleModule("FastBreak", "Breaks blocks faster", PLAYER));
