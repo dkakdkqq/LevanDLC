@@ -86,6 +86,8 @@ public final class Modules {
         m.add(new HighJumpModule());
         m.add(new JesusModule());
         m.add(new NoSlowModule());
+        m.add(new FastLadderModule());
+        m.add(new MultiJumpModule());
         m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
