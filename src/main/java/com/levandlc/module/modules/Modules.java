@@ -90,12 +90,12 @@ public final class Modules {
         m.add(new NoWebModule());
         m.add(new AutoSprintModule());
         m.add(new FreezeModule());
-        m.add(new StepModule());
         m.add(new StrafeModule());
         m.add(new SneakSpeedModule());
         m.add(new WaterSurfModule());
         m.add(new AntiVoidModule());
         m.add(new AntiLevitationModule());
+        m.add(new SimpleModule("Step", "Walk up full blocks instantly", MOVEMENT));
         m.add(new SimpleModule("ElytraFly", "Enhanced elytra flight control", MOVEMENT));
         m.add(new SimpleModule("LongJump", "Jump much further than normal", MOVEMENT));
 
